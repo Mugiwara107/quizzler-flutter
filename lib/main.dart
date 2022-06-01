@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:quizzler/question.dart';
+import 'package:quizzler/quiz.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
+Quiz quiz = Quiz();
 void main() => runApp(Quizzler());
 
 class Quizzler extends StatelessWidget {
@@ -24,7 +28,38 @@ class QuizPage extends StatefulWidget {
   _QuizPageState createState() => _QuizPageState();
 }
 
+Icon addIcons(IconData icon, Color color) {
+  return Icon(
+    icon,
+    color: color,
+  );
+}
+
 class _QuizPageState extends State<QuizPage> {
+  List<Icon> scoreKeeper = [];
+
+  void checkAnswered(bool userPickedAnswer) {
+    bool current = quiz.getQuestionAnswer();
+    setState(() {
+      if (quiz.isFinished()) {
+        Alert(
+          context: context,
+          title: 'Finished!',
+          desc: 'You\'ve reached the end of the quiz.',
+        ).show();
+        quiz.reset();
+        scoreKeeper = [];
+      } else {
+        if (userPickedAnswer == current) {
+          scoreKeeper.add(addIcons(Icons.check, Colors.green));
+        } else {
+          scoreKeeper.add(addIcons(Icons.close, Colors.red));
+        }
+        quiz.next();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +72,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                quiz.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -62,6 +97,7 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked true.
+                checkAnswered(true);
               },
             ),
           ),
@@ -80,10 +116,16 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked false.
+                checkAnswered(false);
               },
             ),
           ),
         ),
+        Expanded(
+          child: Row(
+            children: scoreKeeper,
+          ),
+        )
         //TODO: Add a Row here as your score keeper
       ],
     );
